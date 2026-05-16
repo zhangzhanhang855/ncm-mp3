@@ -16,9 +16,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. 设置 Python 环境
+    # 2. 设置 Python 环境（已修正）
     - name: Set up Python
-      uses: actions/configure-pages@v4 # 仅作为标准环境
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
@@ -45,10 +44,10 @@ jobs:
           echo "No .ncm files found in input/ directory."
         fi
 
-    # 5. 将转换好的 MP3 作为 Artifacts 上传（方便直接在网页下载）
+    # 5. 将转换好的 MP3 作为 Artifacts 上传
     - name: Upload MP3 Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: converted-mp3-files
         path: output/
-        retention-days: 1 # 临时存储 1 天，过期自动删除，保护隐私
+        retention-days: 1

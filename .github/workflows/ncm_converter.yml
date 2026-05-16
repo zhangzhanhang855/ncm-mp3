@@ -1,0 +1,54 @@
+name: NCM to MP3 Converter
+
+# 触发条件：支持手动触发，或者当你向 input 文件夹推送文件时触发
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'input/**'
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 检出仓库代码
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. 设置 Python 环境
+    - name: Set up Python
+      uses: actions/configure-pages@v4 # 仅作为标准环境
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    # 3. 安装解密所需的依赖
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 4. 执行批量转换脚本
+    - name: Convert NCM to MP3
+      run: |
+        mkdir -p output
+        # 遍历 input 文件夹下的所有 ncm 文件并转换
+        if [ -d "input" ] && [ "$(ls -A input/*.ncm 2>/dev/null)" ]; then
+          for file in input/*.ncm; do
+            echo "Converting $file ..."
+            python ncm2mp3.py "$file"
+            # 将生成的 mp3 移动到 output 文件夹
+            mv "${file%.ncm}.mp3" output/ 2>/dev/null || true
+          done
+        else
+          echo "No .ncm files found in input/ directory."
+        fi
+
+    # 5. 将转换好的 MP3 作为 Artifacts 上传（方便直接在网页下载）
+    - name: Upload MP3 Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: converted-mp3-files
+        path: output/
+        retention-days: 1 # 临时存储 1 天，过期自动删除，保护隐私
